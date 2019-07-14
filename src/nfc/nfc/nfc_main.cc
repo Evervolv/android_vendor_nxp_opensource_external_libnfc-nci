@@ -832,7 +832,6 @@ void NFC_Disable(void) {
   if(nfcFL.eseFL._ESE_DUAL_MODE_PRIO_SCHEME == nfcFL.eseFL._ESE_WIRED_MODE_RESUME)
     nfc_stop_timer(&nfc_cb.rf_filed_event_timeout_timer);
 #endif
-
   if ((nfc_cb.nfc_state == NFC_STATE_NONE) ||
       (nfc_cb.nfc_state == NFC_STATE_NFCC_POWER_OFF_SLEEP)) {
     nfc_set_state(NFC_STATE_NONE);
@@ -850,6 +849,8 @@ void NFC_Disable(void) {
     nfc_cb.p_hal->ioctl(HAL_NFC_IOCTL_SET_BOOT_MODE, (void*)&inpOutData);
   }
 #endif
+
+
   /* Close transport and clean up */
   nfc_task_shutdown_nfcc();
 
@@ -1287,6 +1288,11 @@ tNFC_STATUS NFC_SendData(uint8_t conn_id, NFC_HDR* p_data) {
 
   if (p_cb && p_data &&
       p_data->offset >= NCI_MSG_OFFSET_SIZE + NCI_DATA_HDR_SIZE) {
+#if (NXP_EXTNS == TRUE)
+    if(p_data->len > p_cb->buff_size){
+      p_data->offset = 0;
+    }
+#endif
     status = nfc_ncif_send_data(p_cb, p_data);
   }
   if (status != NFC_STATUS_OK) GKI_freebuf(p_data);
@@ -1809,27 +1815,15 @@ int32_t NFC_RelSvddWait(void* pdata) {
         return NFC_STATUS_EPERM;
     }
   nfc_nci_IoctlInOutData_t inpOutData;
-  inpOutData.inp.level = *(uint32_t*)pdata;
   int32_t status;
   status = nfc_cb.p_hal->ioctl(HAL_NFC_IOCTL_REL_SVDD_WAIT, &inpOutData);
   *(tNFC_STATUS*)pdata = inpOutData.out.data.status;
   return status;
 }
-/*******************************************************************************
-**
-** Function         NFC_RelForceDwpOnOffWait
-**
-** Description      This function release wait for DWP On/Off
-**                  of P73. Status would be updated to pdata
-**
-** Returns          0 if api call success, else -1
-**
-*******************************************************************************/
+
 int32_t NFC_RelForceDwpOnOffWait (void *pdata)
 {
-  nfc_nci_IoctlInOutData_t inpOutData;
-  inpOutData.inp.level = *(uint32_t*)pdata;
-  return (nfc_cb.p_hal->ioctl(HAL_NFC_IOCTL_REL_DWP_WAIT, &inpOutData));
+    return (nfc_cb.p_hal->ioctl(HAL_NFC_IOCTL_REL_DWP_WAIT, pdata));
 }
 #endif
 

@@ -189,8 +189,6 @@ void GKI_start_timer(uint8_t tnum, int32_t ticks, bool is_continuous) {
   int32_t reload;
   int32_t orig_ticks;
   uint8_t task_id = GKI_get_taskid();
-
-  /*if task_id doesnt found in the array, use default task id 14*/
   if(task_id == 255) {
     task_id = 14;
   }
@@ -293,7 +291,6 @@ void GKI_start_timer(uint8_t tnum, int32_t ticks, bool is_continuous) {
 void GKI_stop_timer(uint8_t tnum) {
   uint8_t task_id = GKI_get_taskid();
 
-    /*if task_id doesnt found in the array, use default task id 14*/
   if(task_id == 255) {
     task_id = 14;
   }
